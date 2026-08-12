@@ -1,0 +1,37 @@
+services:
+  nexus:
+    image: sonatype/nexus3:3.70.1
+    container_name: buy01-nexus
+    restart: unless-stopped
+    # The official image already runs the `nexus` process as the non-root
+    # `nexus` user (uid 200), never root - see nexus/README.md#1-install--run-nexus
+    # for how this is verified.
+    environment:
+      # Small footprint for a local dev instance; raise if repository
+      # traffic/proxy caching gets heavy.
+      INSTALL4J_ADD_VM_PARAMS: "-Xms512m -Xmx1024m -XX:MaxDirectMemorySize=1024m"
+      NEXUS_SECURITY_RANDOMPASSWORD: "true"
+    ports:
+      - "8085:8081"   # Nexus UI + REST API (host 8085 - 8081 is already buy-02's user-service)
+      - "8086:8086"   # docker-hosted repository connector (docker push/pull)
+      - "8087:8087"   # docker-proxy repository connector (Docker Hub cache)
+      - "8088:8088"   # docker-group repository connector (hosted + proxy combined)
+    volumes:
+      - nexus-data:/nexus-data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          test "$(curl -s -o /dev/null -w '%{http_code}'
+          http://localhost:8081/service/rest/v1/status)" = "200"
+      interval: 15s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+networks:
+  default:
+    name: buy01-nexusnet
+
+volumes:
+  nexus-data:

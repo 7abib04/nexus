@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Maven settings.xml for building buy-01 against Nexus.
+
+  Copy this file to ~/.m2/settings.xml (or pass it explicitly with
+  `mvn -s nexus/settings.xml.template`) and export the env vars below first -
+  no credentials are hard-coded here, Maven interpolates ${env.*} the same
+  way it does in pom.xml.
+
+    NEXUS_URL               default used below: http://localhost:8085
+    NEXUS_DEPLOY_USER        e.g. jenkins-deployer (see nexus/provision.sh)
+    NEXUS_DEPLOY_PASSWORD    that user's password
+
+  The <mirror mirrorOf="*"> below makes Maven resolve every dependency and
+  plugin exclusively through the Nexus "maven-public" group repository
+  (hosted releases + hosted snapshots + the maven-central proxy) instead of
+  reaching out to repo1.maven.org directly - this is what "dependency
+  management through Nexus" means in the project requirements.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <mirrors>
+        <mirror>
+            <id>nexus</id>
+            <mirrorOf>*</mirrorOf>
+            <url>${env.NEXUS_URL}/repository/maven-public/</url>
+        </mirror>
+    </mirrors>
+
+    <servers>
+        <!-- ids must match backend/pom.xml's <distributionManagement> repository ids -->
+        <server>
+            <id>nexus-releases</id>
+            <username>${env.NEXUS_DEPLOY_USER}</username>
+            <password>${env.NEXUS_DEPLOY_PASSWORD}</password>
+        </server>
+        <server>
+            <id>nexus-snapshots</id>
+            <username>${env.NEXUS_DEPLOY_USER}</username>
+            <password>${env.NEXUS_DEPLOY_PASSWORD}</password>
+        </server>
+        <!-- also usable directly against the group repo for `mvn dependency:get` demos -->
+        <server>
+            <id>nexus-public</id>
+            <username>${env.NEXUS_DEPLOY_USER}</username>
+            <password>${env.NEXUS_DEPLOY_PASSWORD}</password>
+        </server>
+    </servers>
+</settings>
+
+<!--
+  backend/pom.xml's <distributionManagement> URLs default to
+  http://localhost:8085 (nexus.url property). Override per environment with
+  -Dnexus.url=... on the mvn command line, e.g. -Dnexus.url=http://nexus:8081
+  when running inside the Jenkins container on the shared buy01-nexusnet
+  Docker network (see jenkins/docker-compose.yml).
+-->
+
