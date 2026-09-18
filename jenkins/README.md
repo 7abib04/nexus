@@ -41,7 +41,7 @@ sh create-job.sh
 
 ## 3. Git access
 
-The pipeline clones `https://github.com/7abib04/buy-02.git`
+The pipeline clones `https://github.com/7abib04/nexus.git`
 anonymously over HTTPS — it's a public repo, so no credential is required and
 there's nothing to set up here. If the repo is ever made private, add a
 `Username with password` credential (username + a GitHub personal access
